@@ -7,5 +7,6 @@
     "danmu": {
         "timestamp": 1512720376.0
     },
-    "roomId": 35724
+    "roomId": 35724,
+    "csrf": "66e98ac60d9429292088a3ae4cd0dbd9"
 }

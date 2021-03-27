@@ -66,7 +66,9 @@ class MediaService(Service):
         
         # 播放完毕
         if not autoPlay:
-            os.remove(path=music['filename'])
+            pass
+            #暂时不删除
+            # os.remove(path=music['filename'])
         self.log.info('[Music] [%s]播放结束' % music['name'])
 
     # 获取推流地址

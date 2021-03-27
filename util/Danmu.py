@@ -88,13 +88,17 @@ class Danmu(object):
                             'fontsize': '25',
                             'mode': '1',
                             'msg': text,
-                            'rnd': '1512718534',
-                            'roomid': roomId
+                            'rnd': '1616330701',
+                            'roomid': roomId,
+                            'csrf_token': "66e98ac60d9429292088a3ae4cd0dbd9",
+                            'csrf': "66e98ac60d9429292088a3ae4cd0dbd9"
                         }).encode('utf-8'))
 
             # 发送请求
             request = urllib.request.Request(self.httpConfig['sendUrl'], postData, self.httpConfig['header'])
             response = json.loads(urllib.request.urlopen(request).read().decode('utf-8'))
+            print(response)
+            print("发送弹幕结束，弹幕 "+text)
 
             return 'code' in response and response['code'] == 0
         except Exception as e:

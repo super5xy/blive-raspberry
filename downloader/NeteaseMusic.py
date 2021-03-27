@@ -1,3 +1,6 @@
+import os
+
+from util.Log import Log
 from util.Request import Request
 from util.AES import AESCipher
 import json
@@ -6,6 +9,8 @@ import time
 class NeteaseMusic(object):
 
     def __init__(self):
+        #有个坑，这里实例化两次，会打印两次Log
+        self.log = Log('NeteaseMusic Service')
         self.config = {
             'nonce': '0CoJUm6Qyw8W8jud',
             'secretKey': 'TA3YiYCfY2dDJQgg',
@@ -93,14 +98,27 @@ class NeteaseMusic(object):
     def download(self, songId, filename=None, callback=None):
         # 名称处理
         if not filename:
-            filename = str(int(time.time()))
+            # filename = str(int(time.time()))
+            filename = str(songId)
 
         # 获取歌曲并下载
         musicResult = self.getSingleUrl(songId)
         if musicResult and 'url' in musicResult:
             musicUrl = musicResult['url']
             filename = './downloader/download/%s.mp3' % filename
-            Request.download(musicUrl, filename, callback)
+            if not os.path.exists(filename):
+                self.log.info("开始下载音乐%s" % filename)
+                print(type(filename))
+                print(filename)
+                print("开始下载音乐%s" % filename)
+                print("开始下载音乐%s" % filename)
+                print("musicUrl "+musicUrl)
+                # print("callback "+callback)
+                Request.download(musicUrl, filename, callback)
+            else:
+                self.log.info("使用缓存的音乐%s" % filename)
+                print("使用缓存的音乐%s" % filename)
+            self.log.info("下载完成")
 
             return filename
         else:
@@ -155,3 +173,49 @@ class NeteaseMusic(object):
             return result
         else:
             return False
+
+    #生成字幕文件，传入参数：
+    #filename：文件名
+    #info：文件信息，用于左下角显示用的
+    #path：文件路径
+    #ass：最原始的歌词数据
+    def make_ass(self,filename, info, ass = '', asst = ''):
+        # ass = lrc_to_ass(ass)
+        # asst = tlrc_to_ass(asst)
+        # timer_get = timer_create(filename,path)
+        timer_get = ''
+        file_content = '''[Script Info]
+Title: Default ASS file
+ScriptType: v4.00+
+WrapStyle: 2
+Collisions: Normal
+PlayResX: 960
+PlayResY: 720
+ScaledBorderAndShadow: yes
+Video Zoom Percent: 1
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,微软雅黑,20,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,2,10,10,5,1
+Style: left_down,微软雅黑,20,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,1,10,10,5,1
+Style: right_down,微软雅黑,20,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,3,10,10,5,1
+Style: left_up,微软雅黑,20,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,7,10,10,5,1
+Style: right_up,微软雅黑,20,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,9,10,10,5,1
+Style: center_up,微软雅黑,20,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,8,10,10,5,1
+Style: center_up_big,微软雅黑,28,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,8,10,10,5,1
+Style: center_down,微软雅黑,20,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,2,10,10,5,1
+Style: center_down_big,微软雅黑,28,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A00,0,0,0,0,100.0,100.0,0.0,0.0,1,3.5546875,3.0,2,10,10,5,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 2,0:00:00.00,9:00:00.00,left_down,,0,0,0,,'''+info+'''
+Dialogue: 2,0:00:00.00,9:00:00.00,right_down,,0,0,0,,基于树莓派4B\\N'''+'点播日期：'+time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))+'''
+Dialogue: 2,0:00:00.00,9:00:00.00,left_up,,0,0,0,,super5xy的树莓派点播台~\\N已开源，源码见https://biu.ee/pi-live\\N使用时请保留源码链接
+Dialogue: 2,0:00:00.00,9:00:00.00,right_up,,0,0,0,,弹幕点播方法请看直播间简介哦~\\N手机请点击直播间标题查看
+        '''+ass+asst+timer_get
+        filename = './resource/lrc/%s.ass' % filename
+        print(filename)
+        # file = open(path+'/downloads/'+str(filename)+'.ass','w')    #保存ass字幕文件
+        file = open(filename,'w',encoding='utf-8')    #保存ass字幕文件
+        file.write(file_content)
+        file.close()
