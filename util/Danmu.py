@@ -62,6 +62,7 @@ class Danmu(object):
         else:
             raise Exception('Cookie 无效')
 
+    #发送弹幕函数
     def send(self, text):
         elapsedTime = 0
         while self.sendLock:
@@ -83,6 +84,7 @@ class Danmu(object):
         self.sendLock = True
         try:
             roomId = self.config.get('roomId')
+            csrf = self.config.get('csrf')
             postData = (urllib.parse.urlencode({
                             'color': '16777215',
                             'fontsize': '25',
@@ -90,8 +92,8 @@ class Danmu(object):
                             'msg': text,
                             'rnd': '1616330701',
                             'roomid': roomId,
-                            'csrf_token': "66e98ac60d9429292088a3ae4cd0dbd9",
-                            'csrf': "66e98ac60d9429292088a3ae4cd0dbd9"
+                            'csrf_token': csrf,
+                            'csrf': csrf
                         }).encode('utf-8'))
 
             # 发送请求

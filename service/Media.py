@@ -34,7 +34,7 @@ class MediaService(Service):
                 }, True)
                 return
 
-            # 获取新的下载任务
+            # 获取新的播放任务
             task = PlayQueue.get()
             if task and 'type' in task:
                 if task['type'] == 'music':

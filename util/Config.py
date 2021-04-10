@@ -43,5 +43,5 @@ class Config(object):
     # 从文件中读取配置对象
     def reload(self):
         configPath = './config.json'
-        configFile = open(configPath, encoding='utf-8')
-        self.config = json.load(configFile)
+        with open(configPath, encoding='utf-8') as configFile:
+            self.config = json.load(configFile)
