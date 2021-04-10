@@ -210,7 +210,7 @@ Style: center_down_big,微软雅黑,28,&H00FFFFFF,&H00FFFFFF,&H28533B3B,&H500E0A
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 2,0:00:00.00,9:00:00.00,left_down,,0,0,0,,'''+info+'''
 Dialogue: 2,0:00:00.00,9:00:00.00,right_down,,0,0,0,,基于树莓派4B\\N'''+'点播日期：'+time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))+'''
-Dialogue: 2,0:00:00.00,9:00:00.00,left_up,,0,0,0,,super5xy的树莓派点播台~\\N已开源，源码见https://biu.ee/pi-live\\N使用时请保留源码链接
+Dialogue: 2,0:00:00.00,9:00:00.00,left_up,,0,0,0,,super5xy的树莓派点播台~\\源码见https://github.com/super5xy/blive-raspberry \\N原作者https://github.com/smilecc/blive-raspberry使用时请保留源码链接
 Dialogue: 2,0:00:00.00,9:00:00.00,right_up,,0,0,0,,弹幕点播方法请看直播间简介哦~\\N手机请点击直播间标题查看
         '''+ass+asst+timer_get
         filename = './resource/lrc/%s.ass' % filename

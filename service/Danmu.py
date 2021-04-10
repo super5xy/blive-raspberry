@@ -1,4 +1,5 @@
 from downloader.NeteaseMusic import *
+from downloader.kuwo import KuwoDownloader
 
 from service.Service import Service
 from util.Danmu import Danmu
@@ -12,10 +13,13 @@ class DanmuService(Service):
     def __init__(self):
         self.danmu = Danmu()
         self.musicDownloader = NeteaseMusic()
+        self.kuwoDownloader = KuwoDownloader()
         self.log = Log('Danmu Service')
         self.commandMap = {
             '点歌': 'selectSongAction',
-            'id': 'selectSongByIdAction'
+            'id': 'selectSongByIdAction',
+            '酷我': 'selectSongKuwoAction',
+            'kwid': 'selectSongByKuwoIdAction'
         }
         pass
 
@@ -100,3 +104,48 @@ class DanmuService(Service):
         except Exception as e:
             self.danmu.send('找不到%s' % danmu['command'])
             self.log.info('找不到%s' % danmu['command'])
+
+    #酷我 歌曲名点歌
+    def selectSongKuwoAction(self,danmu):
+        self.log.info('%s 点歌 [%s]' % (danmu['name'], danmu['command']))
+
+        command = danmu['command']
+
+        # 按歌曲名点歌
+        song = self.kuwoDownloader.getInfo(self.kuwoDownloader.search(command))
+
+        if song:
+            self.danmu.send('%s点歌成功' % song['name'])
+            DownloadQueue.put({
+                'type': 'kuwo',
+                'id': song['id'],
+                'name': song['name'],
+                'singer': song['singer'],
+                'username': danmu['name']
+            })
+        else:
+            # 未找到歌曲
+            self.danmu.send('找不到%s' % danmu['command'])
+            self.log.info('找不到%s' % danmu['command'])
+
+    #酷我音乐 根据id点歌
+    def selectSongByKuwoIdAction(self,danmu):
+        command = danmu['command']
+        try:
+            song = self.kuwoDownloader.getInfo(command)
+            if song:
+                self.danmu.send('%s点歌成功' % song['name'])
+                DownloadQueue.put({
+                    'type': 'kuwo',
+                    'id': song['id'],
+                    'name': song['name'],
+                    'singer': song['singer'],
+                    'username': danmu['name']
+                })
+            else:
+                # 未找到歌曲
+                raise Exception('未找到歌曲')
+        except Exception as e:
+            self.danmu.send('找不到%s' % danmu['command'])
+            self.log.info('找不到%s' % danmu['command'])
+

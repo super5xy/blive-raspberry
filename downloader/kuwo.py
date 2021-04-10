@@ -1,4 +1,6 @@
 # 酷我音乐解析
+import os
+
 import requests
 import json
 
@@ -30,7 +32,7 @@ class KuwoDownloader:
         }
 
         resp = requests.get(search_url,params=params,headers=headers)
-        print(resp.text)
+        # print(resp.text)
         json_string = json.loads(resp.text)
         song_list=json_string["data"]["list"]
         for song in song_list:
@@ -64,19 +66,63 @@ class KuwoDownloader:
         if musicrid:
             if 'MUSIC' not in musicrid:
                 musicrid = 'MUSIC_'+ musicrid
-            self.__download__(musicrid)
+            return self.__download__(musicrid)
         else:
             musicrid = self.search(musicname)
-            self.__download__(musicrid)
+            return self.__download__(musicrid)
 
 
 
     #下载歌曲到本地
     def __download__(self,musicrid):
         filename = './downloader/download/%s.mp3' % musicrid
-        resp = requests.get(self.get_download_url(musicrid))
-        with open(filename, "wb") as file:
-            file.write(resp.content)
+        if not os.path.exists(filename):
+            resp = requests.get(self.get_download_url(musicrid))
+            with open(filename, "wb") as file:
+                file.write(resp.content)
+        else:
+            self.log.info("使用缓存的音乐%s" % filename)
+        return filename
 
 
 
+
+    #获得歌曲信息 包括歌词
+    def get_song_info(self,musicrid):
+        musicrid = musicrid.replace('MUSIC_','')
+        url = 'http://m.kuwo.cn/newh5/singles/songinfoandlrc'
+        params = {
+            'musicId' : musicrid,
+            "httpsStatus": "1",
+            "reqId": "cc337fa0-e856-11ea-8e2d-ab61b365fb50"
+        }
+        resp = requests.get(url,params=params)
+        return json.loads(resp.text)['data']
+
+    #获得歌曲信息
+    def getInfo(self,musicrid):
+        info = self.get_song_info(musicrid)["songinfo"]
+        return {
+            'id': musicrid,
+            'name': info['songName'],
+            'singer': info['artist'],
+        }
+
+    #获得歌词
+    def getLyric(self,musicrid):
+        info = self.get_song_info(musicrid)['lrclist']
+        #如果是纯音乐不传歌词
+        if not info:
+            return '[00:00.000] 纯音乐，请您欣赏\n[10:00.000] '
+        lyric = ""
+        for lineLyric in info:
+            lyric=lyric + '[' + self.convert_time(lineLyric['time']) + ']' + lineLyric['lineLyric'] + '\n'
+        return lyric
+
+    #将酷我歌词时间格式转换为网易云格式
+    def convert_time(self,timeStr):
+        time = float(timeStr)
+        sec = int(time)
+        ms = str(time).split('.')[1]
+        m, s = divmod(sec, 60)
+        return "{0:02d}:{1:02d}.{2:03d}".format(m, s ,int(ms))

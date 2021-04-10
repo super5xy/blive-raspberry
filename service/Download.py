@@ -2,6 +2,7 @@ import json
 import re
 import traceback
 
+from downloader.kuwo import KuwoDownloader
 from util.Queue import DownloadQueue, PlayQueue
 
 from downloader.NeteaseMusic import NeteaseMusic
@@ -108,6 +109,7 @@ class DownloadService(Service):
         self.danmu = Danmu()
         self.log = Log('Download Service')
         self.musicDownloader = NeteaseMusic()
+        self.kuwoDownloader = KuwoDownloader()
 
     # 获取下载队列 分发至下载函数
     def run(self):
@@ -123,6 +125,9 @@ class DownloadService(Service):
                     self.musicDownload(task)
                 elif task['type'] == 'vedio':
                     pass
+                #酷我音乐
+                elif task['type'] == 'kuwo':
+                    self.kuwoMusicDownload(task)
         except Exception as e:
             self.log.error(e)
             traceback.print_exc()
@@ -180,3 +185,34 @@ class DownloadService(Service):
         else:
             pass
 
+
+    def kuwoMusicDownload(self, song):
+        # 搜索歌曲并下载
+        #发送弹幕
+        self.danmu.send('正在下载%s' % song['name'])
+        filename = self.kuwoDownloader.download(musicrid = song['id'])
+        self.log.info("下载成功,文件 "+filename)
+
+        #左下角info信息
+        info = '当前酷我歌曲id：'+str(song['id'])+"\\N当前播放的歌曲："+song['name']+"\\N点播人："+song['username']
+        #生成ass文件
+        lrc = self.kuwoDownloader.getLyric(song['id'])
+        tlrc = ""
+
+
+        self.musicDownloader.make_ass(song['name'],info,lrc_to_ass(lrc),tlrc_to_ass(tlrc))
+
+        if filename:
+            self.log.info('歌曲下载完毕 %s - %s' % (song['name'], song['singer']))
+
+            # 加入播放队列
+            PlayQueue.put({
+                'type': 'music',
+                'filename': filename,
+                'name': song['name'],
+                'singer': song['singer'],
+                'username': song['username'],
+                'lrc': './resource/lrc/'+song['name']+'.ass'
+            })
+        else:
+            pass
